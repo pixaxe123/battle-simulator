@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전투 시뮬레이터</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .side {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .side.red {
+            border-right: 2px solid #ddd;
+        }
+
+        .nation-setup {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .nation-setup.blue {
+            border-left-color: #3498db;
+            border-right: 2px solid #e74c3c;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .unit-section {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .unit-section h3 {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .unit-type {
+            background: white;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .unit-type-name {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .unit-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .unit-controls button {
+            padding: 5px 10px;
+            font-size: 0.9em;
+            cursor: pointer;
+            border: none;
+            border-radius: 3px;
+            background: #667eea;
+            color: white;
+        }
+
+        .unit-controls button:hover {
+            background: #5568d3;
+        }
+
+        .unit-controls input {
+            width: 60px;
+            padding: 5px;
+            text-align: center;
+        }
+
+        .unit-count {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .general-section {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .general-section h3 {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .general-type {
+            background: white;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .general-type input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .general-type label {
+            flex: 1;
+            margin: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .battle-area {
+            grid-column: 1 / -1;
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .battle-area h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .battle-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-battle {
+            padding: 15px 40px;
+            font-size: 1.1em;
+            min-width: 150px;
+        }
+
+        .battle-result {
+            margin-top: 30px;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            display: none;
+            border: 2px solid #667eea;
+        }
+
+        .battle-result.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-header {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .result-winner {
+            color: #27ae60;
+        }
+
+        .result-loser {
+            color: #e74c3c;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .result-side {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .result-side h4 {
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .result-stats {
+            font-size: 0.95em;
+            line-height: 1.8;
+        }
+
+        .result-stats strong {
+            color: #667eea;
+        }
+
+        .flag-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .flag-preview {
+            width: 40px;
+            height: 25px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .close-modal {
+            float: right;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .emoji-flag {
+            font-size: 2em;
+            margin: 0 10px;
+        }
+
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .side.red {
+                border-right: none;
+                border-bottom: 2px solid #ddd;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚔️ 전투 시뮬레이터</h1>
+            <p>병종과 장군을 선택하여 전투를 시뮬레이션해보세요!</p>
+        </div>
+
+        <div class="content">
+            <!-- RED SIDE -->
+            <div class="side red">
+                <div class="nation-setup red">
+                    <h2 style="color: #e74c3c; margin-bottom: 15px;">🔴 레드팀</h2>
+                    
+                    <div class="form-group">
+                        <label for="redNationName">국가명</label>
+                        <input type="text" id="redNationName" placeholder="예: 제국군" value="제국군">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="redFlag">국기 이모지</label>
+                        <div class="flag-input-group">
+                            <input type="text" id="redFlag" placeholder="이모지 입력" value="🏳️‍🔴" maxlength="2">
+                            <div class="flag-preview" id="redFlagPreview">🏳️‍🔴</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RED UNITS -->
+                <div class="unit-section">
+                    <h3>병종 구성</h3>
+                    <div id="redUnits"></div>
+                    <button class="btn btn-secondary" style="width: 100%; margin-top: 10px;" onclick="randomizeUnits('red')">🎲 랜덤 배치</button>
+                </div>
+
+                <!-- RED GENERAL -->
+                <div class="general-section">
+                    <h3>장군 선택</h3>
+                    <div id="redGeneral"></div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label for="redGeneralType">장군 직급</label>
+                        <select id="redGeneralType" onchange="updateGeneralType('red')">
+                            <option value="balanced">밸런스형</option>
+                            <option value="warrior">무장형</option>
+                            <option value="strategist">지략형</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BLUE SIDE -->
+            <div class="side blue">
+                <div class="nation-setup blue">
+                    <h2 style="color: #3498db; margin-bottom: 15px;">🔵 블루팀</h2>
+                    
+                    <div class="form-group">
+                        <label for="blueNationName">국가명</label>
+                        <input type="text" id="blueNationName" placeholder="예: 연합군" value="연합군">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="blueFlag">국기 이모지</label>
+                        <div class="flag-input-group">
+                            <input type="text" id="blueFlag" placeholder="이모지 입력" value="🏳️‍🔵" maxlength="2">
+                            <div class="flag-preview" id="blueFlagPreview">🏳️‍🔵</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BLUE UNITS -->
+                <div class="unit-section">
+                    <h3>병종 구성</h3>
+                    <div id="blueUnits"></div>
+                    <button class="btn btn-secondary" style="width: 100%; margin-top: 10px;" onclick="randomizeUnits('blue')">🎲 랜덤 배치</button>
+                </div>
+
+                <!-- BLUE GENERAL -->
+                <div class="general-section">
+                    <h3>장군 선택</h3>
+                    <div id="blueGeneral"></div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label for="blueGeneralType">장군 직급</label>
+                        <select id="blueGeneralType" onchange="updateGeneralType('blue')">
+                            <option value="balanced">밸런스형</option>
+                            <option value="warrior">무장형</option>
+                            <option value="strategist">지략형</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BATTLE AREA -->
+            <div class="battle-area">
+                <h2>⚡ 전투 시작</h2>
+                <div class="battle-controls">
+                    <button class="btn btn-primary btn-battle" onclick="startBattle()">🎯 전투 시작!</button>
+                    <button class="btn btn-danger btn-battle" onclick="resetAll()">🔄 초기화</button>
+                </div>
+
+                <div class="battle-result" id="battleResult">
+                    <div class="result-header" id="resultHeader"></div>
+                    <div class="result-grid" id="resultDetails"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============= 데이터 정의 =============
+        const unitTypes = {
+            cavalry: {
+                name: '궁기병',
+                icon: '🏇',
+                attack: 45,
+                defense: 35,
+                health: 80,
+                cost: 100
+            },
+            heavyCavalry: {
+                name: '중장기병',
+                icon: '🐴',
+                attack: 55,
+                defense: 50,
+                health: 120,
+                cost: 150
+            },
+            lightLancer: {
+                name: '라이트 창기병',
+                icon: '⚔️',
+                attack: 50,
+                defense: 30,
+                health: 70,
+                cost: 90
+            },
+            hussar: {
+                name: '사브르 든 후사르',
+                icon: '🗡️',
+                attack: 60,
+                defense: 40,
+                health: 90,
+                cost: 140
+            },
+            musketeer: {
+                name: '머스킷 보영',
+                icon: '🔫',
+                attack: 70,
+                defense: 20,
+                health: 60,
+                cost: 120
+            },
+            pikeman: {
+                name: '창병',
+                icon: '🔱',
+                attack: 40,
+                defense: 45,
+                health: 100,
+                cost: 80
+            },
+            swordsman: {
+                name: '검방',
+                icon: '⚔️',
+                attack: 50,
+                defense: 50,
+                health: 100,
+                cost: 110
+            },
+            longswordsman: {
+                name: '장검',
+                icon: '🗡️',
+                attack: 65,
+                defense: 45,
+                health: 110,
+                cost: 130
+            },
+            halberdier: {
+                name: '검도끼',
+                icon: '🪓',
+                attack: 70,
+                defense: 55,
+                health: 130,
+                cost: 160
+            },
+            archer: {
+                name: '궁수',
+                icon: '🏹',
+                attack: 55,
+                defense: 15,
+                health: 50,
+                cost: 95
+            }
+        };
+
+        const generalTypes = {
+            balanced: {
+                name: '밸런스형 장군',
+                attackBonus: 1.1,
+                defenseBonus: 1.1,
+                healthBonus: 1.1,
+                description: '공격과 방어의 균형이 잘 맞춘 장군'
+            },
+            warrior: {
+                name: '무장형 장군',
+                attackBonus: 1.3,
+                defenseBonus: 0.9,
+                healthBonus: 1.0,
+                description: '공격력이 뛰어난 호전적인 장군'
+            },
+            strategist: {
+                name: '지략형 장군',
+                attackBonus: 1.0,
+                defenseBonus: 1.3,
+                healthBonus: 1.2,
+                description: '방어와 전술이 뛰어난 현명한 장군'
+            }
+        };
+
+        // ============= 게임 상태 =============
+        const gameState = {
+            red: {
+                nationName: '제국군',
+                flag: '🏳️‍🔴',
+                units: {},
+                generalType: 'balanced',
+                totalPower: 0
+            },
+            blue: {
+                nationName: '연합군',
+                flag: '🏳️‍🔵',
+                units: {},
+                generalType: 'balanced',
+                totalPower: 0
+            }
+        };
+
+        // ============= 초기화 =============
+        function initializeGame() {
+            // 모든 병종 초기화
+            Object.keys(unitTypes).forEach(key => {
+                gameState.red.units[key] = 0;
+                gameState.blue.units[key] = 0;
+            });
+
+            renderUnits('red');
+            renderUnits('blue');
+            renderGenerals('red');
+            renderGenerals('blue');
+            setupEventListeners();
+        }
+
+        // ============= UI 렌더링 =============
+        function renderUnits(side) {
+            const container = document.getElementById(`${side}Units`);
+            container.innerHTML = '';
+
+            Object.entries(unitTypes).forEach(([key, unit]) => {
+                const count = gameState[side].units[key] || 0;
+                const totalCost = count * unit.cost;
+
+                const unitDiv = document.createElement('div');
+                unitDiv.className = 'unit-type';
+                unitDiv.innerHTML = `
+                    <div class="unit-type-name">
+                        <span>${unit.icon} ${unit.name}</span>
+                        <span class="unit-count">공${unit.attack} / 방${unit.defense} / 체${unit.health}</span>
+                    </div>
+                    <div class="unit-controls">
+                        <button onclick="changeUnitCount('${side}', '${key}', -1)">-</button>
+                        <input type="number" id="${side}_${key}" value="${count}" 
+                               onchange="updateUnitCount('${side}', '${key}')" min="0">
+                        <button onclick="changeUnitCount('${side}', '${key}', 1)">+</button>
+                        <span style="margin-left: auto; color: #666;">비용: ${totalCost}</span>
+                    </div>
+                `;
+                container.appendChild(unitDiv);
+            });
+        }
+
+        function renderGenerals(side) {
+            const container = document.getElementById(`${side}General`);
+            container.innerHTML = '';
+
+            Object.entries(generalTypes).forEach(([key, general]) => {
+                const isSelected = gameState[side].generalType === key;
+                const div = document.createElement('div');
+                div.className = 'general-type';
+                div.innerHTML = `
+                    <input type="radio" name="${side}General" value="${key}" 
+                           id="${side}_${key}" ${isSelected ? 'checked' : ''}
+                           onchange="gameState.${side}.generalType = '${key}'; updatePower();">
+                    <label for="${side}_${key}">
+                        ${general.name}
+                        <br>
+                        <small>${general.description}</small>
+                    </label>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // ============= 병종 관리 =============
+        function changeUnitCount(side, unitKey, delta) {
+            const current = gameState[side].units[unitKey] || 0;
+            const newCount = Math.max(0, current + delta);
+            gameState[side].units[unitKey] = newCount;
+            document.getElementById(`${side}_${unitKey}`).value = newCount;
+            renderUnits(side);
+            updatePower();
+        }
+
+        function updateUnitCount(side, unitKey) {
+            const input = document.getElementById(`${side}_${unitKey}`);
+            const newCount = Math.max(0, parseInt(input.value) || 0);
+            gameState[side].units[unitKey] = newCount;
+            renderUnits(side);
+            updatePower();
+        }
+
+        function randomizeUnits(side) {
+            Object.keys(unitTypes).forEach(key => {
+                gameState[side].units[key] = Math.floor(Math.random() * 20) + 5;
+            });
+            renderUnits(side);
+            updatePower();
+        }
+
+        // ============= 국가 정보 =============
+        function setupEventListeners() {
+            document.getElementById('redNationName').addEventListener('change', (e) => {
+                gameState.red.nationName = e.target.value;
+            });
+
+            document.getElementById('bluNationName').addEventListener('change', (e) => {
+                gameState.blue.nationName = e.target.value;
+            });
+
+            document.getElementById('redFlag').addEventListener('input', (e) => {
+                gameState.red.flag = e.target.value;
+                document.getElementById('redFlagPreview').textContent = e.target.value;
+            });
+
+            document.getElementById('blueFlag').addEventListener('input', (e) => {
+                gameState.blue.flag = e.target.value;
+                document.getElementById('blueFlagPreview').textContent = e.target.value;
+            });
+        }
+
+        function updateGeneralType(side) {
+            const select = document.getElementById(`${side}GeneralType`);
+            gameState[side].generalType = select.value;
+            renderGenerals(side);
+            updatePower();
+        }
+
+        // ============= 전력 계산 =============
+        function calculatePower(side) {
+            let totalPower = 0;
+            let totalHealth = 0;
+            let totalAttack = 0;
+            let totalDefense = 0;
+
+            Object.entries(gameState[side].units).forEach(([key, count]) => {
+                const unit = unitTypes[key];
+                totalHealth += unit.health * count;
+                totalAttack += unit.attack * count;
+                totalDefense += unit.defense * count;
+            });
+
+            const general = generalTypes[gameState[side].generalType];
+            totalHealth *= general.healthBonus;
+            totalAttack *= general.attackBonus;
+            totalDefense *= general.defenseBonus;
+
+            totalPower = totalHealth + totalAttack + totalDefense;
+
+            return {
+                totalPower,
+                totalHealth: Math.floor(totalHealth),
+                totalAttack: Math.floor(totalAttack),
+                totalDefense: Math.floor(totalDefense),
+                unitCount: Object.values(gameState[side].units).reduce((a, b) => a + b, 0)
+            };
+        }
+
+        function updatePower() {
+            gameState.red.totalPower = calculatePower('red').totalPower;
+            gameState.blue.totalPower = calculatePower('blue').totalPower;
+        }
+
+        // ============= 전투 시뮬레이션 =============
+        function startBattle() {
+            const redUnits = Object.values(gameState.red.units).reduce((a, b) => a + b, 0);
+            const blueUnits = Object.values(gameState.blue.units).reduce((a, b) => a + b, 0);
+
+            if (redUnits === 0 || blueUnits === 0) {
+                alert('양쪽 모두 최소 1명 이상의 병력이 필요합니다!');
+                return;
+            }
+
+            const redStats = calculatePower('red');
+            const blueStats = calculatePower('blue');
+
+            // 승패 결정 로직
+            let winner, loser;
+            let winnerStats, loserStats;
+
+            const redScore = redStats.totalPower + Math.random() * 100;
+            const blueScore = blueStats.totalPower + Math.random() * 100;
+
+            if (redScore > blueScore) {
+                winner = 'red';
+                loser = 'blue';
+                winnerStats = redStats;
+                loserStats = blueStats;
+            } else {
+                winner = 'blue';
+                loser = 'red';
+                winnerStats = blueStats;
+                loserStats = redStats;
+            }
+
+            displayBattleResult(winner, loser, winnerStats, loserStats);
+        }
+
+        function displayBattleResult(winner, loser, winnerStats, loserStats) {
+            const winnerData = gameState[winner];
+            const loserData = gameState[loser];
+            const winnerGeneral = generalTypes[gameState[winner].generalType];
+            const loserGeneral = generalTypes[gameState[loser].generalType];
+
+            const resultHeader = document.getElementById('resultHeader');
+            resultHeader.innerHTML = `
+                <span class="result-winner">${winnerData.flag} ${winnerData.nationName} 승리!</span>
+                <br>
+                <span style="font-size: 0.6em; color: #999;">vs</span>
+                <br>
+                <span class="result-loser">${loserData.flag} ${loserData.nationName} 패배</span>
+            `;
+
+            const resultDetails = document.getElementById('resultDetails');
+            resultDetails.innerHTML = `
+                <div class="result-side" style="background: #e8f5e9;">
+                    <h4>${winnerData.flag} ${winnerData.nationName} (승자)</h4>
+                    <div class="result-stats">
+                        <div><strong>장군:</strong> ${winnerGeneral.name}</div>
+                        <div><strong>총 병력:</strong> ${winnerStats.unitCount}명</div>
+                        <div><strong>공격력:</strong> ${winnerStats.totalAttack}</div>
+                        <div><strong>방어력:</strong> ${winnerStats.totalDefense}</div>
+                        <div><strong>체력:</strong> ${winnerStats.totalHealth}</div>
+                        <div><strong>전력:</strong> ${Math.floor(winnerStats.totalPower)}</div>
+                    </div>
+                </div>
+                <div class="result-side" style="background: #ffebee;">
+                    <h4>${loserData.flag} ${loserData.nationName} (패자)</h4>
+                    <div class="result-stats">
+                        <div><strong>장군:</strong> ${loserGeneral.name}</div>
+                        <div><strong>총 병력:</strong> ${loserStats.unitCount}명</div>
+                        <div><strong>공격력:</strong> ${loserStats.totalAttack}</div>
+                        <div><strong>방어력:</strong> ${loserStats.totalDefense}</div>
+                        <div><strong>체력:</strong> ${loserStats.totalHealth}</div>
+                        <div><strong>전력:</strong> ${Math.floor(loserStats.totalPower)}</div>
+                    </div>
+                </div>
+            `;
+
+            const battleResult = document.getElementById('battleResult');
+            battleResult.classList.remove('show');
+            setTimeout(() => {
+                battleResult.classList.add('show');
+            }, 10);
+        }
+
+        // ============= 초기화 =============
+        function resetAll() {
+            Object.keys(unitTypes).forEach(key => {
+                gameState.red.units[key] = 0;
+                gameState.blue.units[key] = 0;
+            });
+            document.getElementById('battleResult').classList.remove('show');
+            renderUnits('red');
+            renderUnits('blue');
+            updatePower();
+        }
+
+        // 페이지 로드시 초기화
+        window.addEventListener('load', initializeGame);
+    </script>
+</body>
+</html>
